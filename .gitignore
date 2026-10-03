@@ -81,4 +81,6 @@ Desktop.ini
 # ─── Логи ──────────────────────────────────────────────────
 *.log
 logs/
-.projectile
+.projectileo
+
+mediamtx/mediamtx.yml

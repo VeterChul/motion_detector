@@ -1,0 +1,64 @@
+###############################################
+# mediamtx — минимальный конфиг для одной USB-камеры
+###############################################
+
+logLevel: info
+logDestinations: [stdout]
+
+# ─── Авторизация ─────────────────────────────
+# publish — только с localhost (ffmpeg внутри контейнера)
+# read/playback/api — пользователю из .env
+authInternalUsers:
+  - user: any
+    pass: gslUReYhwX 
+    ips: ['127.0.0.1', '::1']
+    permissions:
+      - action: publish
+  - user: cctv
+    pass: CHANGE_ME_FROM_ENV
+    permissions:
+      - action: read
+      - action: playback
+      - action: api
+
+# ─── API ─────────────────────────────────────
+api: yes
+apiAddress: :9997
+
+# ─── RTSP ────────────────────────────────────
+rtsp: yes
+rtspAddress: :8554
+
+# ─── HLS (для живого просмотра через SSH-туннель) ───
+hls: yes
+hlsAddress: :8888
+hlsVariant: lowLatency
+
+# ─── Путь cam ────────────────────────────────
+paths:
+  cam:
+    # ffmpeg запускается mediamtx при старте
+    #-i /dev/v4l/by-id/usb-SunplusIT_Inc_Integrated_Camera_01.00.00-video-index0 -- видео
+    #-i hw:CARD=PCH -- звук
+    runOnInit: >
+      ffmpeg -hide_banner -loglevel warning
+      -f v4l2 -input_format mjpeg -framerate 15 -video_size 1920x1080
+      -use_wallclock_as_timestamps 1 -thread_queue_size 1024
+      -i /dev/v4l/by-id/usb-SunplusIT_Inc_Integrated_Camera_01.00.00-video-index0
+      -f alsa -use_wallclock_as_timestamps 1 -thread_queue_size 1024
+      -i hw:CARD=PCH 
+      -c:v libx264 -preset veryfast -pix_fmt yuv420p
+      -g 30 -crf 23 -maxrate 2M -bufsize 4M
+      -c:a aac -b:a 64k -ac 1
+      -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+
+    runOnInitRestart: yes
+
+    # ─── Непрерывная запись в fMP4 ───
+    record: yes
+    recordFormat: fmp4
+    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+    recordDeleteAfter: 72h
+
+    # ─── Playback API ───
+    playback: yes
