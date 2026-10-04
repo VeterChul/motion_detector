@@ -1,0 +1,17 @@
+mediamtx:
+  host: mediamtx
+  port: 8554
+  path: cam
+  transport: tcp
+
+mqtt:
+  host: mosquitto
+  port: 1883
+  topic_prefix: cctv/detector
+
+heartbeat:
+  interval: 5
+  file: /tmp/heartbeat
+
+log:
+  frame_log_interval: 5

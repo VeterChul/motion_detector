@@ -14,8 +14,9 @@ authInternalUsers:
     ips: ['127.0.0.1', '::1']
     permissions:
       - action: publish
+      - action: read        # ← добавить
   - user: cctv
-    pass: CHANGE_ME_FROM_ENV
+    pass: gslUReYhwXE
     permissions:
       - action: read
       - action: playback
