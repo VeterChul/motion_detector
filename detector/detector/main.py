@@ -6,8 +6,10 @@ import signal
 import sys
 import threading
 import time
-
+import cv2
 import yaml
+
+from datetime import datetime, timezone
 
 from .motion import MotionDetector
 from .publisher import Publisher
@@ -52,6 +54,7 @@ def main():
     )
     process_every = det_cfg["process_every"]
     post_roll = det_cfg["post_roll"]
+    max_skreen_count = det_cfg["max_skreen_count"]
 
     # ─── Состояние ───────────────────────────
     state = {
@@ -64,6 +67,11 @@ def main():
         "last_seen": None,
     }
     stop_event = threading.Event()
+    # Состояние кадров — инициализируем до цикла
+    snap_state = {
+        "dir": None,
+        "count": 0,
+    }
 
     # ─── Поток heartbeat ─────────────────────
     def heartbeat_loop():
@@ -101,6 +109,9 @@ def main():
     last_log = 0.0
     frame_log_interval = cfg.get("log", {}).get("frame_log_interval", 5) * 5
 
+    snaps_dir = "/recordings/skreen"
+    os.makedirs(snaps_dir, exist_ok=True)
+
     try:
         for frame, ts in source.frames():
             if stop_event.is_set():
@@ -125,13 +136,36 @@ def main():
                 motion_state["last_seen"] = ts
                 if not motion_state["active"]:
                     motion_state["active"] = True
+                    skreen_count = 0
+
+                    dirname = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
+                    snap_state["dir"] = os.path.join(snaps_dir, dirname)
+                    os.makedirs(snap_state["dir"], exist_ok=True)
+                    snap_state["count"] = 0
+
                     publisher.publish("motion_started", {"t": round(ts, 3)})
                     log.info("motion_started at %.3f", ts)
+
+                if snap_state["dir"] and snap_state["count"] < max_skreen_count:
+                    snap_state["count"] += 1
+                    filepath = os.path.join(
+                        snap_state["dir"],
+                        f"{snap_state['count']:03d}.jpg",
+                    )
+                    ok = cv2.imwrite(filepath, frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                    if ok:
+                        log.info("saved frame: %s", filepath)
+                    else:
+                        log.error("failed to save frame: %s", filepath)
+
             else:
                 if motion_state["active"] and motion_state["last_seen"]:
+
                     silence = ts - motion_state["last_seen"]
                     if silence >= post_roll:
                         motion_state["active"] = False
+                        snap_state["dir"] = None
+
                         publisher.publish(
                             "motion_stopped",
                             {

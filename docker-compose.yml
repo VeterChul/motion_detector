@@ -75,6 +75,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./detector/config.yaml:/app/config.yaml:ro
+      - ~/my_bin/recordings:/recordings
     env_file: .env
     depends_on:
       mosquitto:
