@@ -1,3 +1,9 @@
+detector:
+  process_every: 6
+  width: 320
+  min_area_ratio: 0.005
+  warmup_frames: 100
+  post_roll: 60
 mediamtx:
   host: mediamtx
   port: 8554
@@ -8,6 +14,13 @@ mqtt:
   host: mosquitto
   port: 1883
   topic_prefix: cctv/detector
+
+detector:
+  process_every: 6
+  width: 320
+  min_area_ratio: 0.005
+  warmup_frames: 100
+  post_roll: 60
 
 heartbeat:
   interval: 5
