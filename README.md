@@ -1,4 +1,10 @@
-# cctv
+# Motion Detector
+
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-v0.1-orange)
+![Platform](https://img.shields.io/badge/platform-linux-lightgrey)
 
 Система видеонаблюдения с детекцией движения и публикацией событий через MQTT. Проект рассчитан на запуск на локальном сервере рядом с камерой, без публикации чего-либо в интернет.
 
