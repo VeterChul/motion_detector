@@ -67,6 +67,7 @@ def main():
         "last_seen": None,
     }
     stop_event = threading.Event()
+
     # Состояние кадров — инициализируем до цикла
     snap_state = {
         "dir": None,

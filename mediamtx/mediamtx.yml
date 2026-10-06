@@ -46,7 +46,7 @@ paths:
       -f v4l2 -input_format mjpeg -framerate 15 -video_size 1920x1080
       -use_wallclock_as_timestamps 1 -thread_queue_size 1024
       -i /dev/v4l/by-id/usb-SunplusIT_Inc_Integrated_Camera_01.00.00-video-index0
-      -f alsa -use_wallclock_as_timestamps 1 -thread_queue_size 1024
+      -f alsa  -thread_queue_size 1024
       -i hw:CARD=PCH 
       -c:v libx264 -preset veryfast -pix_fmt yuv420p
       -g 30 -crf 23 -maxrate 2M -bufsize 4M
@@ -58,8 +58,10 @@ paths:
     # ─── Непрерывная запись в fMP4 ───
     record: yes
     recordFormat: fmp4
-    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S
     recordDeleteAfter: 72h
+    recordSegmentDuration: 10m
+    recordPartDuration: 1s
 
     # ─── Playback API ───
     playback: yes
