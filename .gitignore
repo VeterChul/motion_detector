@@ -3,6 +3,8 @@
 .env
 .env.*
 !.env.example
+mediamtx/mediamtx.yml
+
 
 # Пароли MQTT (генерируются локально)
 mosquitto/passwd
@@ -82,5 +84,3 @@ Desktop.ini
 *.log
 logs/
 .projectileo
-
-mediamtx/mediamtx.yml

@@ -35,6 +35,10 @@ hls: yes
 hlsAddress: :8888
 hlsVariant: lowLatency
 
+# ─── Playback API ────────────────────────────
+playback: yes
+playbackAddress: :9996
+
 # ─── Путь cam ────────────────────────────────
 paths:
   cam:
@@ -58,10 +62,8 @@ paths:
     # ─── Непрерывная запись в fMP4 ───
     record: yes
     recordFormat: fmp4
-    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S
+    recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
     recordDeleteAfter: 72h
     recordSegmentDuration: 10m
     recordPartDuration: 1s
 
-    # ─── Playback API ───
-    playback: yes
