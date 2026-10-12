@@ -23,6 +23,12 @@ class Publisher:
         self.client.reconnect_delay_set(min_delay=1, max_delay=30)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
+        self.client.will_set(
+            topic=f"{prefix}/status",
+            payload="offline",
+            qos=1,
+            retain=True,
+        )
 
     def _on_connect(self, client, userdata, flags, reason_code, properties=None):
         if reason_code == 0:

@@ -82,19 +82,19 @@ services:
         condition: service_healthy
       mediamtx:
         condition: service_healthy
-    #healthcheck:
-    #  test: ["CMD-SHELL", "test -f /tmp/heartbeat && test $(( $(date +%s) - $(stat -c %Y /tmp/heartbeat) )) -lt 60"]
-    #  interval: 30s
-    #  timeout: 10s
-    #  retries: 3
-    #  start_period: 60s
+    healthcheck:
+        test: ["CMD-SHELL", "test $(( $(date +%s) - $(stat -c %Y /tmp/heartbeat) )) -lt 60"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 60s
+    labels:
+        - autoheal=true
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-    #labels:
-    #  - autoheal=true
     networks:
       - cctv
 

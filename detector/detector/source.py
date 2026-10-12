@@ -21,7 +21,12 @@ class RTSPSource:
         while True:
             try:
                 log.info("Connecting to %s", self.url)
-                container = av.open(self.url, options={"rtsp_transport": self.transport})
+                container = av.open(self.url,
+                                    options={
+                                        "rtsp_transport": self.transport,
+                                        "stimeout": "5000000",   # 5 секунд в микросекундах
+                                        "rw_timeout": "5000000",
+                                    })
                 stream = container.streams.video[0]
                 stream.thread_type = "AUTO"
                 log.info("Connected, decoding...")

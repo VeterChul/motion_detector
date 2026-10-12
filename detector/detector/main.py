@@ -102,6 +102,38 @@ def main():
     signal.signal(signal.SIGTERM, on_signal)
     signal.signal(signal.SIGINT, on_signal)
 
+    # ─── Публикация state ───────────────────
+    state_pub = {"last": 0.0}          # время последней публикации
+    state_publish_interval = 5.0        # не чаще раза в 5 секунд
+    warmup_done = False                 # прошёл ли прогрев MOG2
+
+
+    def publish_state(now, force=False):
+
+        """Опубликовать retained state detector'а.
+
+        force=True — публиковать даже если недавно публиковали (для переходов).
+        force=False — throttle: не чаще state_publish_interval секунд.
+        """
+        if not force and now - state_pub["last"] < state_publish_interval:
+            return
+        publisher.publish(
+            "state",
+            {
+                "active": motion_state["active"],
+                "warmup": not warmup_done,
+                "last_motion": round(motion_state["last_seen"], 3)
+                                if motion_state["last_seen"] else None,
+                "t": round(now, 3),
+            },
+            qos=1,
+            retain=True,
+        )
+        state_pub["last"] = now
+
+    # Первое состояние — detector только стартовал, warmup идёт
+    publish_state(time.time(), force=True)
+
     # ─── Основной цикл ───────────────────────
     source = RTSPSource(url, transport=mtx["transport"])
     log.info("Detector started")
@@ -122,6 +154,7 @@ def main():
             state["frame_count"] = count
             state["last_frame_ts"] = ts
 
+
             # ─── Логирование кадров ────────────
             if count - last_log >= frame_log_interval:
                 log.info("Received %d frames, last: shape=%s", count, frame.shape)
@@ -133,6 +166,16 @@ def main():
 
             has_motion = detector.process(frame)
 
+            # Проверка окончания warmup
+            if not warmup_done and detector.frame_count > detector.warmup_frames:
+                warmup_done = True
+                publish_state(ts, force=True)
+                log.info("warmup done, detector ready")
+
+            if time.time() - last_heartbeat_touch > 10:
+                pathlib.Path("/tmp/heartbeat").touch()
+                last_heartbeat_touch = time.time()
+    
             if has_motion:
                 motion_state["last_seen"] = ts
                 if not motion_state["active"]:
@@ -158,8 +201,11 @@ def main():
                         log.info("saved frame: %s", filepath)
                     else:
                         log.error("failed to save frame: %s", filepath)
+                publish_state(ts, force=True)
+
 
             else:
+                publish_state(ts)
                 if motion_state["active"] and motion_state["last_seen"]:
 
                     silence = ts - motion_state["last_seen"]
